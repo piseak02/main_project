@@ -1,12 +1,14 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:main_project/constant/url_system.dart';
 import 'package:main_project/screens/changePart/addPart.dart';
 import 'package:main_project/screens/changePart/detailPart.dart';
+import 'package:intl/intl.dart';
 
-
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class listPart extends StatefulWidget {
   @override
@@ -16,15 +18,20 @@ class listPart extends StatefulWidget {
 class _listPartState extends State<listPart> {
   TextEditingController controller = new TextEditingController();
 
-  // Get json result and convert it to model. Then add
-  Future<Null> getUserDetails() async {
-    final response = await http.get(url);
+
+  // Get json result and convert it to model. Then add   ********************************************************
+  Future<Null> getListPart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.get(url_select_list_part, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
     final responseJson = json.decode(response.body);
 
+
+    _changDetails.clear();
     setState(() {
-      for (Map user in responseJson) {
-        _userDetails.add(UserDetails.fromJson(user));
+      for (Map datacheng in json.decode(responseJson['data'])) {
+        _changDetails.add(CheangDetails.fromJson(datacheng));
       }
+      print(responseJson['data']);
     });
   }
 
@@ -32,12 +39,11 @@ class _listPartState extends State<listPart> {
   void initState() {
     super.initState();
 
-    getUserDetails();
+    getListPart();
   }
 
   @override
   Widget build(BuildContext context) {
-
     Widget floatingAction = FloatingActionButton(
       backgroundColor: Colors.blueAccent,
       onPressed: () async {
@@ -84,29 +90,39 @@ class _listPartState extends State<listPart> {
               itemBuilder: (context, i) {
                 return new Card(
                   child: new ListTile(
-                    leading: new CircleAvatar(backgroundImage: new NetworkImage(_searchResult[i].profileUrl,),),
-                    title: new Text(_searchResult[i].firstName + ' ' + _searchResult[i].lastName),
+                    leading: const Icon(Icons.local_hospital),
+                    title: Text(_searchResult[i].story ,style: TextStyle(fontSize: 19.0,color: Colors.black)),
+                    subtitle: Text('วันที่  '+(_searchResult[i].date).toString() ,style: TextStyle(fontSize: 16.0,color: Colors.teal),),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          new MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                            new DetailChang(_changDetails[i]),
+                          ));
+                    },
                   ),
                   margin: const EdgeInsets.all(0.0),
                 );
               },
             )
                 : new ListView.builder(
-              itemCount: _userDetails.length,
+              itemCount: _changDetails.length,
               itemBuilder: (context, index) {
                 return new Card(
                   child: new ListTile(
-                    leading: new CircleAvatar(backgroundImage: new NetworkImage(_userDetails[index].profileUrl,),),
-                    title: new Text(_userDetails[index].firstName + ' ' + _userDetails[index].lastName),
+                    leading: const Icon(Icons.local_hospital),
+                    title: new Text(_changDetails[index].story ,style: TextStyle(fontSize: 19.0,color: Colors.black)),
+                    subtitle: Text('วันที่  '+(_changDetails[index].date).toString() + ' ผู้บันทึก ' + _changDetails[index].namelangh.toString()  ,style: TextStyle(fontSize: 16.0,color: Colors.black45), ),
                     onTap: () {
                       Navigator.push(
                           context,
                           new MaterialPageRoute(
                               builder: (BuildContext context) =>
-                              new SecondPage(_userDetails[index])));
+                              new DetailChang(_changDetails[index]),
+                          ));
                     },
                   ),
-                  margin: const EdgeInsets.all(0.0),
                 );
               },
             ),
@@ -124,33 +140,44 @@ class _listPartState extends State<listPart> {
       return;
     }
 
-    _userDetails.forEach((userDetail) {
-      if (userDetail.firstName.contains(text) || userDetail.lastName.contains(text))
-        _searchResult.add(userDetail);
+    _changDetails.forEach((changDetail) {
+      if (changDetail.story.contains(text))
+        _searchResult.add(changDetail);
     });
 
     setState(() {});
   }
 }
 
-List<UserDetails> _searchResult = [];
+List<CheangDetails> _searchResult = [];
 
-List<UserDetails> _userDetails = [];
+List<CheangDetails> _changDetails = [];
 
-final String url = 'https://jsonplaceholder.typicode.com/users';
-class UserDetails {
-  final int id;
-  final String firstName, lastName, profileUrl, Address ,city;
 
-  UserDetails({this.id, this.firstName, this.lastName, this.Address, this.city, this.profileUrl = 'https://i.amz.mshcdn.com/3NbrfEiECotKyhcUhgPJHbrL7zM=/950x534/filters:quality(90)/2014%2F06%2F02%2Fc0%2Fzuckheadsho.a33d0.jpg'});
+class CheangDetails {
+  final String id, story, depratment, symptom, productname, date ,namelangh   ;
+  final int  unit , priceunit ;
 
-  factory UserDetails.fromJson(Map<String, dynamic> json) {
-    return new UserDetails(
+
+
+  CheangDetails({this.id,this.story, this.depratment, this.symptom, this.productname, this.unit, this.priceunit, this.date,this.namelangh });
+
+  factory CheangDetails.fromJson(Map<String, dynamic> json) {
+    return new CheangDetails(
       id: json['id'],
-      firstName: json['name'],
-      lastName: json['username'],
-      Address: json ['address']['street'],
-      city: json ['address']['city'],
+      story: json['title'],
+      depratment: json['department'],
+      symptom: json ['symptom'],
+      productname: json ['part']['productname'],
+      unit: json ['unit'],
+      priceunit: json ['part']['priceunit'],
+      date: json ['date'],
+      namelangh: json ['recordname']['name'],
     );
   }
 }
+
+
+
+
+

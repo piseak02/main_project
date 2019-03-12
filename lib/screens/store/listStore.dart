@@ -1,36 +1,43 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:main_project/screens/store/addStore.dart';
-import 'package:main_project/screens/store/detailStore.dart';
+import 'package:main_project/screens/store/detilstore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:main_project/constant/url_system.dart';
 
 class listStore extends StatefulWidget {
   @override
-  _listStoreState createState() => _listStoreState();
+  _listStoereState createState() => _listStoereState();
 }
 
-class _listStoreState extends State<listStore> {
-  String url = 'https://randomuser.me/api/?results=15';
-  List data;
-  Future<String> makeRequest() async {
-    var response = await http
-        .get(Uri.encodeFull(url), headers: {"Accept": "application/json"});
+class _listStoereState extends State<listStore> {
+  TextEditingController controller = new TextEditingController();
 
+
+  // Get json result and convert it to model. Then add
+  Future<Null> getListStoer() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.get(url_get_stock_rank+prefs.getString('rank'), headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
+    final responseJson = json.decode(response.body);
+    //print(responseJson);
+    //print(responseJson['data']);
+    _storeDetails.clear();
     setState(() {
-      var extractdata = json.decode(response.body);
-      data = extractdata["results"];
+     for (Map user in json.decode(responseJson['data'])) {
+       _storeDetails.add(StoreDetails.fromJson(user));
+     }
     });
   }
 
   @override
-  void initState() {      // ดาวเวอร์ ชั้นขี3ขีด
-    this.makeRequest();
+  void initState() {
+    super.initState();
+
+    getListStoer();
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -40,38 +47,122 @@ class _listStoreState extends State<listStore> {
       onPressed: () async {
         var response = await Navigator.push(context,
             MaterialPageRoute(builder: (context) => Addstore()));
-
-        print(response['name']);
       },
       child: Icon(Icons.add),
     );
+
+
+
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('รายการอะไหล่'),
+        elevation: 0.0,
       ),
-      body: new ListView.builder(
-          itemCount: data == null ? 0 : data.length,
-          itemBuilder: (BuildContext context, i) {
-            return new ListTile(
-              title: new Text(data[i]["name"]["first"]),
-              subtitle: new Text(data[i]["phone"]),
-              leading: new CircleAvatar(
-                backgroundImage:
-                new NetworkImage(data[i]["picture"]["thumbnail"]),
+      body: new Column(
+        children: <Widget>[
+          new Container(
+            color: Theme.of(context).primaryColor,
+            child: new Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: new Card(
+                child: new ListTile(
+                  leading: new Icon(Icons.search),
+                  title: new TextField(
+                    controller: controller,
+                    decoration: new InputDecoration(
+                        hintText: 'Search', border: InputBorder.none),
+                    onChanged: onSearchTextChanged,
+                  ),
+                  trailing: new IconButton(icon: new Icon(Icons.cancel), onPressed: () {
+                    controller.clear();
+                    onSearchTextChanged('');
+                  },),
+                ),
               ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    new MaterialPageRoute(
-                        builder: (BuildContext context) =>
-                        new SecondPage(data[i])));
+            ),
+          ),
+          new Expanded(
+            child: _searchResult.length != 0 || controller.text.isNotEmpty
+                ? new ListView.builder(
+              itemCount: _searchResult.length,
+              itemBuilder: (context, i) {
+                return new Card(
+                  child: new ListTile(
+                   // title: new Text(_searchResult[i].product + ' ' + (_searchResult[i].unit).toString()),
+                    leading: const Icon(Icons.assignment),
+                    title: Text(_searchResult[i].product ,style: TextStyle(fontSize: 19.0,color: Colors.black),),
+                    subtitle: Text('ยอดคงเหลือ  '+(_searchResult[i].unit).toString(),style: TextStyle(fontSize: 16.0,color: Colors.red),),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          new MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                              new detilstore(_storeDetails[i])));
+                    },
+                  ),
+                  margin: const EdgeInsets.all(0.0),
+                );
               },
-            );
-          }
+            )
+                : new ListView.builder(
+              itemCount: _storeDetails.length,
+              itemBuilder: (context, index) {
+                return new Card(
+                child: ListTile(
+                  leading: const Icon(Icons.assignment),
+                  title: Text(_storeDetails[index].product ,style: TextStyle(fontSize: 19.0,color: Colors.black)),
+                  subtitle: Text('ยอดคงเหลือ  '+(_storeDetails[index].unit).toString(),style: TextStyle(fontSize: 16.0,color: Colors.red),),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                            new detilstore(_storeDetails[index])));
+                  },
+                ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: floatingAction,
     );
   }
+
+  onSearchTextChanged(String text) async {
+    _searchResult.clear();
+    if (text.isEmpty) {
+      setState(() {});
+      return;
+    }
+
+    _storeDetails.forEach((userDetail) {
+      if (userDetail.product.contains(text))
+        _searchResult.add(userDetail);
+    });
+
+    setState(() {});
+  }
 }
 
+List<StoreDetails> _searchResult = [];
 
+List<StoreDetails> _storeDetails = [];
+
+class StoreDetails {
+  final String id, product;
+  final int  unit , priceunit ,pricetotal;
+
+  StoreDetails({this.id,this.product, this.unit, this.priceunit, this.pricetotal});
+
+  factory StoreDetails.fromJson(Map<String, dynamic> json) {
+    return new StoreDetails(
+      id: json['id'],
+      product: json['productname'],
+      unit: json['unit'],
+      priceunit: json ['priceunit'],
+      pricetotal: json ['pricetotal'],
+    );
+  }
+}

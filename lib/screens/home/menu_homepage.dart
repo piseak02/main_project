@@ -20,7 +20,6 @@ class _HomeState extends State<Home> {
       body: ListView(
         padding: const EdgeInsets.all(10.0),
         children: <Widget>[
-
           Column(
             children: <Widget>[
               Card(

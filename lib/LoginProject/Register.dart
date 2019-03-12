@@ -1,37 +1,109 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:main_project/LoginProject/FormLogin.dart';
+import 'package:main_project/components/Dialogs.dart';
+import 'package:main_project/constant/url_system.dart';
 
-class RrgisterU extends StatefulWidget {
-  RrgisterU({Key key, this.title}) : super(key: key);
-  final String title;
+
+class Register  extends StatefulWidget {
+  Register ({Key key, this.contact}) : super(key: key);
+  final String contact;
 
   @override
-  _RrgisterUState createState() => _RrgisterUState();
+  _RegisterState createState() => new _RegisterState();
 }
 
-class _RrgisterUState extends State<RrgisterU> {
+class _RegisterState extends State<Register > {
+  DialogsInformation dialog = new DialogsInformation();
+  DialogShow dialognext = new DialogShow();
 
-  Contact newContact = new Contact();
+  TextEditingController ctrusername = TextEditingController();
+  TextEditingController ctrpassword = TextEditingController();
+  TextEditingController ctrname = TextEditingController();
+  TextEditingController ctrrank = TextEditingController();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  List<String> _colors = <String>['', 'red', 'green', 'blue', 'orange'];
 
-  String _color = '';
-  File _image;
-  Future getImageCamera() async{
-    var imageFile = await ImagePicker.pickImage(source: ImageSource.camera);
+  String _dep = '';
+  List<DepDetail> _deps = [];
+  List<String> _deps_all = <String>[''];
+
+  Future<Null> getDataLoad() async {
+
+    final getrankurl = await http.get(url_select_department);
+    final responseJson = await json.decode(getrankurl.body);
+    final responseJsonData = await json.decode(responseJson['data']);
+
+   // print(responseJsonData);
+    //print(responseJsonData[0]['name']);
+    //_deps.clear();
+    //_deps_all.clear();
 
     setState(() {
-      _image = imageFile;
+      for (Map deppp in responseJsonData) {
+        _deps.add(DepDetail.fromJson(deppp));
+      }
+
+      for(int i=0; i <= (_deps.length-1); i++ ){
+        _deps_all.add(_deps[i].name);
+      }
+      //print(_deps_all);
     });
+  }
+
+
+  Future<Null> AddRegister() async {
+
+    if (ctrusername.text == '' || ctrpassword.text == '' || ctrname.text == '' || ctrrank.text == '' ) {
+      dialog.information(context, 'แจ้งเตือน','ไม่สามารถแก้ไขข้อมูลได้');
+    }
+    else {
+      String jsonRejister = json.encode({
+        'username': ctrusername.text,
+        'password': ctrpassword.text,
+        'name': ctrname.text,
+        'rank': ctrrank.text,
+      });
+
+      final response = await http.post(url_create_user, headers: {
+        HttpHeaders.contentTypeHeader: 'application/json',
+        HttpHeaders.authorizationHeader: 'Bearer '
+      }, body: jsonRejister);
+
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        if (jsonResponse['status'] == 'true') {
+          print('conncet action');
+        } else {
+          //login error
+          print('no action');
+        }
+      } else {
+        //login error
+        print('no noaction');
+      }
+      dialognext.nextpage(context, '', 'บันทึกสำเร็จ');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getDataLoad();
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      key: _scaffoldKey,
       appBar: new AppBar(
-        title: new Text(widget.title),
+        title: new Text('สมัครสมาชิก'),
       ),
       body: new SafeArea(
           top: false,
@@ -44,63 +116,83 @@ class _RrgisterUState extends State<RrgisterU> {
                 children: <Widget>[
                   new TextFormField(
                     decoration: const InputDecoration(
-                      icon: const Icon(Icons.laptop),
-                      hintText: 'Enter your first and last Text',
-                      labelText: 'Text',
+                      icon: const Icon(Icons.person),
+                      hintText: 'สร้างผู้ใช้',
+                      labelText: 'ผู้ใช้',
                     ),
+                    controller: ctrusername,
+                    validator: (val) =>
+                    val.isEmpty
+                        ? 'กรุณาสร้างชื่อ ผู้ใช้'
+                        : null,
                   ),
                   new TextFormField(
                     decoration: const InputDecoration(
-                      icon: const Icon(Icons.calendar_today),
-                      hintText: 'Enter your date of birth',
-                      labelText: 'date',
+                      icon: const Icon(Icons.vpn_key),
+                      hintText: 'สร้างรหัสผ่าน',
+                      labelText: 'รหัสผ่าน',
                     ),
-                    keyboardType: TextInputType.datetime,
+                    controller: ctrpassword,
+                    inputFormatters: [new LengthLimitingTextInputFormatter(30)],
+                    validator: (val) =>
+                    val.isEmpty
+                        ? 'กรุณาสร้าง รหัสผ่าน'
+                        : null,
                   ),
-                  new FormField(
-                    builder: (FormFieldState state) {
+                  new TextFormField(
+                    decoration: const InputDecoration(
+                      icon: const Icon(Icons.font_download),
+                      hintText: 'สร้าง ชื่อผู้เข้าใช้งาน',
+                      labelText: 'ชื่อผู้เข้าใช้งาน',
+                    ),
+                    controller: ctrname,
+                    inputFormatters: [new LengthLimitingTextInputFormatter(30)],
+                    validator: (val) =>
+                    val.isEmpty
+                        ? 'กรุณาสร้าง ชื่อผู้เข้าใช้งาน'
+                        : null,
+                  ),
+                  new FormField<String>(
+                    builder: (FormFieldState<String> state) {
                       return InputDecorator(
                         decoration: InputDecoration(
                           icon: const Icon(Icons.color_lens),
-                          labelText: 'Color',
+                          labelText: 'แผนก',
+                          errorText: state.hasError ? state.errorText : null,
                         ),
-                        isEmpty: _color == '',
+                        isEmpty: _dep == '',
                         child: new DropdownButtonHideUnderline(
-                          child: new DropdownButton(
-                            value: _color,
+                          child: new DropdownButton<String>(
+                            hint: new Text("กรุณาเลือก"),
+                            value: _dep,
                             isDense: true,
                             onChanged: (String newValue) {
                               setState(() {
-                                newContact.favoriteColor = newValue;
-                                _color = newValue;
+                                _dep = newValue;
                                 state.didChange(newValue);
+                                ctrrank.text = newValue;
                               });
                             },
-                            items: _colors.map((String value) {
+                            items: _deps_all.map((String value) {
                               return new DropdownMenuItem(
-                                value: value,
                                 child: new Text(value),
+                                value: value,
                               );
                             }).toList(),
                           ),
                         ),
                       );
                     },
-                  ),
-                  Container(
-                    child: _image==null
-                        ? new Text('No img')
-                        : new Image.file(_image),
-                  ),
-                  RaisedButton(
-                    child: Icon(Icons.add_a_photo),
-                    onPressed: getImageCamera,
+                    validator: (val) {
+                      return val != '' ? null : 'Please select a color';
+                    },
                   ),
                   new Container(
                       padding: const EdgeInsets.only(left: 40.0, top: 20.0),
                       child: new RaisedButton(
-                        child: const Text('SAVE'),
-                        onPressed: null,
+                        color: Theme.of(context).accentColor,
+                        child: const Text('บันทึก'),
+                        onPressed: () => AddRegister(),
                       )),
                 ],
               ))),
@@ -108,10 +200,52 @@ class _RrgisterUState extends State<RrgisterU> {
   }
 }
 
-class Contact {
-  String name;
-  DateTime dob;
-  String phone = '';
-  String email = '';
-  String favoriteColor = '';
+//List<DepDetail> _depdetail = [];
+
+class DepDetail {
+  final String  name;
+
+
+  DepDetail({this.name});
+
+  factory DepDetail.fromJson(Map<String, dynamic> json) {
+    return new DepDetail(
+      name: json ['name'],
+    );
+  }
 }
+
+
+class DialogShow {
+  nextpage(BuildContext context, String titel, String description) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(''),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(description)
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
+                ),
+                child: Text('ตกลง'),
+              )
+            ],
+          );
+        }
+    );
+  }
+}
+
+
+
+
