@@ -1,8 +1,14 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:main_project/components/menu_left.dart';
 import 'package:main_project/constant/size_const.dart';
+import 'package:main_project/constant/url_system.dart';
 import 'package:main_project/screens/changePart/listPart.dart';
 import 'package:main_project/screens/store/listStore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class Home extends StatefulWidget {
@@ -11,8 +17,50 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+  String count1='';
+  String countStock='';
+
+  Future<Null> getCout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.get(url_cout_change+prefs.getString('rank'), headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
+    final responseJson = json.decode(response.body);
+   // print('xxxx');
+   // print(responseJson['data']);
+
+
+    setState(() {
+      count1 = responseJson['data'];
+    });
+    //print(count1);
+  }
+  Future<Null> getCoutStock() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final response = await http.get(url_cout_rank+prefs.getString('rank'), headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
+    final responseJson = json.decode(response.body);
+   // print('xxxx');
+   // print(responseJson['data']);
+
+
+    setState(() {
+      countStock = responseJson['data'];
+    });
+  //  print(countStock);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    getCout();
+    getCoutStock();
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    //print(count1);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('หน้าหลัก', style: TextStyle(fontSize: TEXT_LARGE_SIZE)),
@@ -43,7 +91,7 @@ class _HomeState extends State<Home> {
                       ),
                       ListTile(
                         title: Text(
-                          '22 รายการ',
+                           (count1 == null) ? '' : count1,
                           style: TextStyle(fontSize: TEXT_NORMAL_SIZE),
                         ),
                         subtitle: Text(
@@ -89,7 +137,7 @@ class _HomeState extends State<Home> {
                       ),
                       ListTile(
                         title: Text(
-                          '100 รายการ',
+                          (countStock == null) ? '' : countStock,
                           style: TextStyle(fontSize: TEXT_NORMAL_SIZE),
                         ),
                         subtitle: Text(
@@ -116,3 +164,5 @@ class _HomeState extends State<Home> {
     );
   }
 }
+
+

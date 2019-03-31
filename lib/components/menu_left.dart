@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:main_project/constant/size_const.dart';
 import 'package:main_project/screens/changePart/listPart.dart';
+import 'package:main_project/screens/home/profile.dart';
 import 'package:main_project/screens/store/listStore.dart';
 import 'package:main_project/screens/home/menu_homepage.dart';
+import 'package:main_project/screens/changePart/listPart.dart';
 
 class menuLeft extends StatefulWidget {
   @override
@@ -23,12 +25,12 @@ class _menuLeftState extends State<menuLeft> {
                 accountName: Padding(
                   padding: const EdgeInsets.only(top: 25.0),
                   child: Text(
-                    'User',
+                    'N.T.H',
                     style: TextStyle(fontSize: TEXT_LARGE_SIZE),
                   ),
                 ),
                 accountEmail: Text(
-                  'aim@a.com',
+                  'Non Thai Hospital',
                   style: TextStyle(fontSize: TEXT_NORMAL_SIZE),
                 ),
                 /*decoration: BoxDecoration(
@@ -40,7 +42,7 @@ class _menuLeftState extends State<menuLeft> {
                     border: Border(
                         bottom: BorderSide(width: 1.1, color: Colors.black))),
                 currentAccountPicture: new CircleAvatar(
-                  backgroundImage: AssetImage('assets/got.jpg'),
+                  backgroundImage: AssetImage('assets/nth1.jpg'),
                 )),
             Divider(),
             ListTile(
@@ -92,8 +94,10 @@ class _menuLeftState extends State<menuLeft> {
                 style: TextStyle(fontSize: TEXT_NORMAL_SIZE),
               ),
               onTap: () {
-                // Update the state of the app
-                // ...
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => listProfile()),
+                );
               },
             ),
             Divider(),

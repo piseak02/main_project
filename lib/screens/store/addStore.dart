@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:main_project/components/Dialogs.dart';
 import 'package:main_project/constant/url_system.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:main_project/components/loader.dart';
 
 class Addstore  extends StatefulWidget {
   Addstore ({Key key, this.contact}) : super(key: key);
@@ -55,6 +56,7 @@ class _AddstoreState extends State<Addstore > {
         var jsonResponse = json.decode(response.body);
         if(jsonResponse['status'] == 'true'){
           dialogsStore.confirm(context, 'ข้อความ', 'บันทึกข้อมูลสำเร็จ');
+          //ColorLoader();
         }
         else{
           //login error

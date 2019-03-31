@@ -50,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
             prefs.setString('username',dataResponse['username'] );
             prefs.setString('rank',dataResponse['rank'] );
             prefs.setString('name',dataResponse['name'] );
-           // print(prefs.getString('token')); วิธีใช้
+            prefs.setString('id',dataResponse['id'] );
+           print(prefs.getString('id')); //วิธีใช้
 
             Navigator.push(
               context,

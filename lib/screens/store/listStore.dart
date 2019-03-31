@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:main_project/components/menu_left.dart';
+
 import 'package:main_project/screens/store/addStore.dart';
 import 'package:main_project/screens/store/detilstore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,8 +24,8 @@ class _listStoereState extends State<listStore> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final response = await http.get(url_get_stock_rank+prefs.getString('rank'), headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
     final responseJson = json.decode(response.body);
-    //print(responseJson);
-    //print(responseJson['data']);
+   // print('xxxxxxx');
+   // print(responseJson['data']);
     _storeDetails.clear();
     setState(() {
      for (Map user in json.decode(responseJson['data'])) {
@@ -127,6 +129,7 @@ class _listStoereState extends State<listStore> {
         ],
       ),
       floatingActionButton: floatingAction,
+      drawer: menuLeft(),
     );
   }
 
@@ -151,10 +154,10 @@ List<StoreDetails> _searchResult = [];
 List<StoreDetails> _storeDetails = [];
 
 class StoreDetails {
-  final String id, product;
+  final String id, product ,date;
   final int  unit , priceunit ,pricetotal;
 
-  StoreDetails({this.id,this.product, this.unit, this.priceunit, this.pricetotal});
+  StoreDetails({this.id,this.product, this.unit, this.priceunit, this.pricetotal , this.date});
 
   factory StoreDetails.fromJson(Map<String, dynamic> json) {
     return new StoreDetails(
@@ -163,6 +166,7 @@ class StoreDetails {
       unit: json['unit'],
       priceunit: json ['priceunit'],
       pricetotal: json ['pricetotal'],
+      date: json ['date'],
     );
   }
 }

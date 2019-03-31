@@ -11,6 +11,7 @@ import 'package:main_project/screens/changePart/listPart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class editPart extends StatelessWidget {
+
   editPart(this.CheangDetails);
   // Dialogs dialogs = new Dialogs();
   final CheangDetails;
@@ -59,7 +60,7 @@ class editPart extends StatelessWidget {
 
         final responseJson = json.decode(response.body);
 
-        print(responseJson);
+      //  print(responseJson);
 
         if(responseJson['status'] == 'true'){
           /// todo ทำเชค หน้าลบรายการ

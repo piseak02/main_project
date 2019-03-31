@@ -34,7 +34,6 @@ class _RegisterState extends State<Register > {
   List<String> _deps_all = <String>[''];
 
   Future<Null> getDataLoad() async {
-
     final getrankurl = await http.get(url_select_department);
     final responseJson = await json.decode(getrankurl.body);
     final responseJsonData = await json.decode(responseJson['data']);
@@ -52,7 +51,7 @@ class _RegisterState extends State<Register > {
       for(int i=0; i <= (_deps.length-1); i++ ){
         _deps_all.add(_deps[i].name);
       }
-      //print(_deps_all);
+    //  print(_deps_all);
     });
   }
 

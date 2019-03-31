@@ -53,7 +53,7 @@ class editStore extends StatelessWidget {
 
         final responseJson = json.decode(response.body);
 
-        print(responseJson);
+       // print(responseJson);
 
         if(responseJson['status'] == 'true'){
           /// todo ทำเชค หน้าลบรายการ

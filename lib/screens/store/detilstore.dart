@@ -21,7 +21,7 @@ DialogsInformation dialog = new DialogsInformation();
     if(isYes){
       print('delete action');
       // Navigator.pop(context);
-      print(_storeDetails.product);
+      //print(_storeDetails.product);
       Future<Null> deletestore() async {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         final response = await http.delete(url_stock_byid+_storeDetails.id, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
@@ -113,7 +113,6 @@ DialogsInformation dialog = new DialogsInformation();
               Text('ราคารวมสุทธิ',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
               Text(_storeDetails.pricetotal.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
             ]),
-
           ]),
         ),
         Container(

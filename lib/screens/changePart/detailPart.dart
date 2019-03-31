@@ -11,24 +11,22 @@ import 'package:shared_preferences/shared_preferences.dart';  //_changDetails  D
 
 class DetailChang  extends StatelessWidget {
   DetailChang (this._changDetails);
-  // Dialogs dialogs = new Dialogs();
+  Dialogs dialogs = new Dialogs();
   final _changDetails;
   DialogsInformation dialog = new DialogsInformation();
-
 
   _confirmResult(bool isYes, BuildContext context){
     if(isYes){
       print('delete action');
       // Navigator.pop(context);
-      print(_changDetails.priceunit);
-     /* Future<Null> deletechang() async {
+      Future<Null> deletestore() async {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        final response = await http.delete(url_delate_chang + _changDetails.id, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
+        final response = await http.delete(url_delate_chang+_changDetails.id, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
         final responseJson = json.decode(response.body);
 
-        print(responseJson);
+       // print(responseJson);
        // print(responseJson['status']);
-        /*if(responseJson['status'] == 'true'){
+        if(responseJson['status'] == 'true'){
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => listPart()),
@@ -37,10 +35,10 @@ class DetailChang  extends StatelessWidget {
         else {
           // Navigator.pop(context);
           dialog.information(context, 'แจ้งเตือน','ไม่สามารถลบข้อมูลได้');
-        } */
-      }*/
+        }
+      }
 
-      //deletechang();
+      deletestore();
     }
     else {
       print('No action');
@@ -78,78 +76,82 @@ class DetailChang  extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => new Scaffold(
-    appBar: new AppBar(title: new Text('รายการละเอียด')),
-    body: ListView(
-      children: <Widget>[
-        Container(
-          padding: EdgeInsets.only(left: 20.0,top: 20,bottom: 50.0,right: 17.0),
-          alignment: Alignment.topLeft,
-          child: Table(
-              children: [
-                TableRow(children: [
-                  Text('ชื่อเรื่อง',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.story,style: TextStyle(fontSize: 20.0,color: Colors.black),),
+  Widget build(BuildContext context) {
+
+    return new Scaffold(
+      appBar: new AppBar(title: new Text('รายการละเอียด')),
+      body: ListView(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.only(left: 20.0,top: 20,bottom: 50.0,right: 17.0),
+            alignment: Alignment.topLeft,
+           child: Table(
+                children: [
+                  TableRow(children: [
+                    Text('ชื่อเรื่อง',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.story,style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('แผนก',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.depratment.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('อาการ',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.symptom.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('อะไหล่',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.productname.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('จำนวน',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.unit.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('ราคา',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(_changDetails.priceunit.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
+                  ]),
+                  TableRow(children:[
+                    Text('รูปอุปกรณ์ใหม่',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    (_changDetails.picturenew == null) ? Text('') : Image.network(_changDetails.picturenew, width: 150.0, height: 150.0,),
+                  ]),
+                  TableRow(children:[
+                    Text('',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    Text(''),
+                  ]),
+                  TableRow(children:[
+                    Text('รูปอุปกรณ์เก่า',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
+                    ( _changDetails.pictureold == null) ? Text('') : Image.network(_changDetails.pictureold, width: 150.0, height: 150.0,),
+                  ]),
                 ]),
-                TableRow(children:[
-                  Text('แผนก',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.depratment.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
-                ]),
-                TableRow(children:[
-                  Text('อาการ',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.symptom.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
-                ]),
-                TableRow(children:[
-                  Text('อะไหล่',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.productname.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
-                ]),
-                TableRow(children:[
-                  Text('จำนวน',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.unit.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
-                ]),
-                TableRow(children:[
-                  Text('ราคา',style: TextStyle(color: Colors.black45,fontSize: 20.0),),
-                  Text(_changDetails.priceunit.toString(),style: TextStyle(fontSize: 20.0,color: Colors.black),),
-                ]),
-              ]),
-        ),
-        Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  new RaisedButton(
-                    onPressed: ()  {
-                      Navigator.push(
-                          context,
-                          new MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                              new editPart(_changDetails)));
-                    },
-                    child: Text('แก้ไขข้อมูล'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  new RaisedButton(
-                    onPressed: ()  {
-                      confirm(context,'This is a tutle','ต้องการลบใช่หรือไม่');
-                    },
-                    child: Text('ลบข้อมูล',style: TextStyle(color: Colors.red),),
-                  ),
-                ],
-              ),
-            ],
           ),
-        ),
-      ],
-    ),
-  );
+          Container(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    new RaisedButton(
+                      onPressed: ()  {
+                        confirm(context,'This is a tutle','ต้องการลบใช่หรือไม่');
+                      },
+                      child: Text('ลบข้อมูล',style: TextStyle(color: Colors.red),),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 

@@ -2,12 +2,11 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:main_project/components/menu_left.dart';
 import 'package:http/http.dart' as http;
 import 'package:main_project/constant/url_system.dart';
 import 'package:main_project/screens/changePart/addPart.dart';
 import 'package:main_project/screens/changePart/detailPart.dart';
-import 'package:intl/intl.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class listPart extends StatefulWidget {
@@ -22,22 +21,22 @@ class _listPartState extends State<listPart> {
   // Get json result and convert it to model. Then add   ********************************************************
   Future<Null> getListPart() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await http.get(url_select_list_part, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
+    final response = await http.get(url_select_list_part+prefs.getString('rank'), headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')});
     final responseJson = json.decode(response.body);
-
 
     _changDetails.clear();
     setState(() {
       for (Map datacheng in json.decode(responseJson['data'])) {
         _changDetails.add(CheangDetails.fromJson(datacheng));
       }
-      print(responseJson['data']);
+    // print(responseJson['data']);
     });
   }
 
   @override
   void initState() {
     super.initState();
+
 
     getListPart();
   }
@@ -50,10 +49,12 @@ class _listPartState extends State<listPart> {
         var response = await Navigator.push(context,
             MaterialPageRoute(builder: (context) => AddPart()));
 
-        print(response['name']);
+       // print(response['name']);
       },
       child: Icon(Icons.add),
     );
+
+
 
     return new Scaffold(
       appBar: new AppBar(
@@ -111,9 +112,24 @@ class _listPartState extends State<listPart> {
               itemBuilder: (context, index) {
                 return new Card(
                   child: new ListTile(
-                    leading: const Icon(Icons.local_hospital),
+                    leading: const Icon(Icons.brightness_1),
                     title: new Text(_changDetails[index].story ,style: TextStyle(fontSize: 19.0,color: Colors.black)),
-                    subtitle: Text('วันที่  '+(_changDetails[index].date).toString() + ' ผู้บันทึก ' + _changDetails[index].namelangh.toString()  ,style: TextStyle(fontSize: 16.0,color: Colors.black45), ),
+                    //subtitle: Text('วันที่  '+(_changDetails[index].date.substring(8,10)).toString() +(_changDetails[index].date.substring(4,8)).toString()+(_changDetails[index].date.substring(0,4)).toString() + ' ผู้บันทึก ' + _changDetails[index].namelangh.toString()  ,style: TextStyle(fontSize: 16.0,color: Colors.black45), ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          child: Text('วันที่  '+(_changDetails[index].date.substring(8,10)).toString() +(_changDetails[index].date.substring(4,8)).toString()+(_changDetails[index].date.substring(0,4)).toString()
+                            ,style: TextStyle(fontSize: 16.0,color: Colors.black45),textAlign: TextAlign.left),
+                        ),
+                        Container(
+                         child: Text('แผนก  '+(_changDetails[index].depratment),style: TextStyle(fontSize: 16.0,color: Colors.black45),),
+                        ),
+                        Container(
+                          child: Text('ผู้บันทึก  '+(_changDetails[index].namelangh),style: TextStyle(fontSize: 16.0,color: Colors.black45),),
+                        ),
+                      ],
+                    ),
                     onTap: () {
                       Navigator.push(
                           context,
@@ -130,6 +146,7 @@ class _listPartState extends State<listPart> {
         ],
       ),
       floatingActionButton: floatingAction,
+      drawer: menuLeft(),
     );
   }
 
@@ -155,24 +172,30 @@ List<CheangDetails> _changDetails = [];
 
 
 class CheangDetails {
-  final String id, story, depratment, symptom, productname, date ,namelangh   ;
+  final String id, story, depratment, symptom, productname, date ,namelangh ,picturenew ,pictureold, username, name, rank   ;
   final int  unit , priceunit ;
 
 
 
-  CheangDetails({this.id,this.story, this.depratment, this.symptom, this.productname, this.unit, this.priceunit, this.date,this.namelangh });
+  CheangDetails({this.id,this.story, this.depratment, this.symptom, this.productname, this.unit, this.priceunit, this.date,this.namelangh ,this.picturenew,this.pictureold,this.username,this.name,this.rank });
 
   factory CheangDetails.fromJson(Map<String, dynamic> json) {
     return new CheangDetails(
       id: json['id'],
       story: json['title'],
-      depratment: json['department'],
+      depratment: json ['department'],
       symptom: json ['symptom'],
       productname: json ['part']['productname'],
       unit: json ['unit'],
       priceunit: json ['part']['priceunit'],
       date: json ['date'],
       namelangh: json ['recordname']['name'],
+      picturenew: json ['picturenew'],
+      pictureold: json ['pictureold'],
+      username: json ['username'],
+      name: json ['name'],
+      rank: json ['rank'],
+
     );
   }
 }

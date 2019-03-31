@@ -4,6 +4,7 @@
 const url_login = 'https://project-changepart.herokuapp.com/login'; //ล็อคอิน
 const url_create_user = 'https://project-changepart.herokuapp.com/user/create'; //สร้าง user
 const url_user_byid = 'https://project-changepart.herokuapp.com/user/'; //อัพเดทข้อมูลผู้ใช้,ลบข้อมูล,//แสดงผู้ใช้ทั้งหมด
+const url_select_user = 'https://project-changepart.herokuapp.com/user'; //อัพเดทข้อมูลผู้ใช้,ลบข้อมูล,//แสดงผู้ใช้ทั้งหมด
 const url_user = 'https://project-changepart.herokuapp.com/user'; //ดูยูสเซอร์ทั้งหมด
 ///////////////////////// สต็อค ///////////////////////////////////////////////
 
@@ -25,14 +26,18 @@ const url_delete_log = 'https://project-changepart.herokuapp.com/logs:id'; //ล
 /////////////////////////// เพิ่มรายการเปลี่ยน อะไหล่ //////////////////////////////////
 
 const url_insert_part = 'https://project-changepart.herokuapp.com/change'; //เพิ่มรายการอะไหล่
-const url_select_list_part = 'https://project-changepart.herokuapp.com/change'; ///เรียกดูรายการอะไหล่
+const url_select_list_part = 'https://project-changepart.herokuapp.com/change/All/'; ///เรียกดูรายการอะไหล่
 const url_search_list_system = 'https://project-changepart.herokuapp.com/change/:id'; //ค้นหารายการอะไหล่ตามไอดี , อัพเดทรายการอะไหล่ ,ลบรายการอะไหล่
 const url_delate_chang = 'https://project-changepart.herokuapp.com/change/';
 const url_update_part = 'https://project-changepart.herokuapp.com/change/';
+const url_upload_part = 'https://project-changepart.herokuapp.com/change/upload';
 ////////////////////////////  อัพรูป /////////////////////////////////////////
 
 const url_upload_pic = 'https://project-changepart.herokuapp.com'; //อัพโหลดรูป
 
+////////////////เค้าท์ //////////////////////////////
+const url_cout_rank = 'https://project-changepart.herokuapp.com/stockcount/';
+const url_cout_change = 'https://project-changepart.herokuapp.com/changecount/';
 
 
 

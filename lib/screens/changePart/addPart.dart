@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:main_project/components/Dialogs.dart';
 import 'package:main_project/constant/url_system.dart';
-import 'package:main_project/screens/changePart/condition.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
 
 
 class AddPart extends StatefulWidget {
@@ -32,7 +33,6 @@ class _AddPartState extends State<AddPart> {
   List<StockPart> _stockparts = [];
   List<String> _stock_all = <String>[''];
 
-  Dio dio = new Dio();
 
   TextEditingController ctrStory = TextEditingController();
   TextEditingController ctrdepratment = TextEditingController();
@@ -41,11 +41,13 @@ class _AddPartState extends State<AddPart> {
   TextEditingController ctrunit = TextEditingController();
   TextEditingController ctrprice = TextEditingController();
 
+  DialogsInformation dialog = new DialogsInformation();
+
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
 
-  File _image;
 
-
+  File _image1;
+  File _image2;
 
   Future<Null> getDatadep() async {
     // todo ฟังชั่น get department
@@ -77,7 +79,7 @@ class _AddPartState extends State<AddPart> {
     final responseJsonData_stock = await json.decode(responseJson_getStock['data']);
 
     //print(responseJsonData_stock[0]['productname']);
-   // print(responseJsonData_stock);
+    // print(responseJsonData_stock);
     //print(StockPart);
 
     setState(() {
@@ -102,71 +104,125 @@ class _AddPartState extends State<AddPart> {
 
 
 
+    Future getImage1() async {
+      var image = await ImagePicker.pickImage(source: ImageSource.camera);
 
-
-
-  Future<Null> addpart() async {
-    //todo ฟังชั่นเซฟ
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    var jsonAddPart = json.encode({
-      'title': ctrStory.text,
-      'department': ctrdepratment.text,
-      'symptom': ctrsymptom.text,
-      'productname': ctrstock.text,
-      'unit': int.parse(ctrunit.text),
-      'priceunit': double.parse(ctrprice.text),
-      'username':prefs.getString('username'),
-      'rank':prefs.getString('rank'),
-      'name':prefs.getString('name'),
-
-    });
-
-    final response = await http.post(url_insert_part, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')}, body: jsonAddPart);
-
-   print(response.body);
-
-    DialogsInformation dialogs = new DialogsInformation();
-    DialogAddpart nextPagepart  = new DialogAddpart ();
-    if(response.statusCode == 200){
-      var jsonResponse = json.decode(response.body);
-      if(jsonResponse['status'] == 'true'){
-        nextPagepart.nextPage(context, 'ข้อความ', 'บันทึกข้อมูลสำเร็จ');
-      }
-      else{
-        //login error
-        //print('no login');
-        dialogs.information(context, 'ข้อความ','ไม่สามารถบันทึกข้อมูลได้');
-      }
-    }
-    else {
-      //login error
-      dialogs.information(context, 'ข้อความ','ไม่สามารถบันทึกข้อมูลได้');
-      //print('no login');
+      setState(() {
+        _image1 = image;
+      });
     }
 
-   // jsonAddPart
-  }
+    Future getImage2() async {
+      var image = await ImagePicker.pickImage(source: ImageSource.camera);
 
-
-//todo ทำเก็ตคาเมล่า
-  Future getImageCamera() async {
-
-    var imageFile = await ImagePicker.pickImage(source: ImageSource.camera);
-
-    setState(() {
-      _image = imageFile;
-    });
-  }
-
-
-
+      setState(() {
+        _image2 = image;
+      });
+    }
 
 
 
   @override
     Widget build(BuildContext context) {
-      return new Scaffold(
+///*****
+    Future<Null> addpart() async {
+      //todo ฟังชั่นเซฟ
+
+      if (ctrStory.text == '' || ctrdepratment.text == '' || ctrsymptom.text == '' || ctrstock.text == '' || ctrunit.text == '' || ctrprice.text == '' || _image1 == null ) {
+        dialog.information(context, 'แจ้งเตือน','ไม่สามารถเพิ่มมูลได้');
+      }
+      else {
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var jsonAddPart = json.encode({
+          'title': ctrStory.text,
+          'department': ctrdepratment.text,
+          'symptom': ctrsymptom.text,
+          'productname': ctrstock.text,
+          'unit': int.parse(ctrunit.text),
+          'priceunit': double.parse(ctrprice.text),
+          'username':prefs.getString('username'),
+          'rank':prefs.getString('rank'),
+          'name':prefs.getString('name'),
+
+        });
+
+        final response = await http.post(url_insert_part, headers: {HttpHeaders.contentTypeHeader: 'application/json',HttpHeaders.authorizationHeader:'Bearer '+prefs.getString('token')}, body: jsonAddPart);
+
+        //  print(response.body);
+
+        DialogsInformation dialogs = new DialogsInformation();
+        DialogAddpart nextPagepart  = new DialogAddpart ();
+        if(response.statusCode == 200){
+          var jsonResponse = json.decode(response.body);
+          if(jsonResponse['status'] == 'true'){
+
+            var jsonResponseData = json.decode(jsonResponse['data']);
+
+            // print(jsonResponseData['id']);
+
+            var dataId = jsonResponseData['id'];
+            var typeImg = '';
+            if(_image1 != null ) {
+              typeImg = 'new';
+
+              Map<String, String> headers = {
+                "Authorization": "Bearer "+prefs.getString('token'),
+                "Content-Type": "multipart/form-data"
+              };
+
+              var stream = new http.ByteStream(DelegatingStream.typed(_image1.openRead()));
+              final length = await _image1.length();
+              var uri = Uri.parse(url_upload_part);
+              var request = new http.MultipartRequest("POST", uri);
+              request.headers.addAll(headers);
+              request.fields['data_id'] = dataId;
+              request.fields['typeImg'] = typeImg;
+              request.files.add(new http.MultipartFile('file', stream, length, filename: basename(_image1.path)));
+
+              http.Response response = await http.Response.fromStream(await request.send());
+              //print("Result: ${response.body}");
+
+            }//end if _image1
+
+            if(_image2 != null){
+              typeImg = 'old';
+
+              Map<String, String> headers = {
+                "Authorization": "Bearer "+prefs.getString('token'),
+                "Content-Type": "multipart/form-data"
+              };
+
+              var stream = new http.ByteStream(DelegatingStream.typed(_image2.openRead()));
+              final length = await _image2.length();
+              var uri = Uri.parse(url_upload_part);
+              var request = new http.MultipartRequest("POST", uri);
+              request.headers.addAll(headers);
+              request.fields['data_id'] = dataId;
+              request.fields['typeImg'] = typeImg;
+              request.files.add(new http.MultipartFile('file', stream, length, filename: basename(_image2.path)));
+
+              http.Response response = await http.Response.fromStream(await request.send());
+            }//end if _image1
+
+            nextPagepart.nextPage(context, 'ข้อความ', 'บันทึกข้อมูลสำเร็จ');
+          }
+          else{
+            //login error
+            //print('no login');
+            dialogs.information(context, 'ข้อความ','ไม่สามารถบันทึกข้อมูลได้');
+          }
+        }
+        else {
+          //login error
+          dialogs.information(context, 'ข้อความ','ไม่สามารถบันทึกข้อมูลได้');
+          //print('no login');
+        }
+      }
+
+      // jsonAddPart
+    }
+    return new Scaffold(
         appBar: new AppBar(
           title: new Text('เพิ่มรายการ'),
         ),
@@ -175,6 +231,7 @@ class _AddPartState extends State<AddPart> {
             key: _formKey,
             autovalidate: true,
             child: ListView(
+              padding: EdgeInsets.only(right: 20.0,left: 20.0),
               children: <Widget>[
                 TextFormField(
                   decoration: const InputDecoration(
@@ -183,6 +240,7 @@ class _AddPartState extends State<AddPart> {
                     labelText: 'เรื่อง',
                   ),
                   controller: ctrStory,
+                  validator: (val) => val.isEmpty ? 'กรุณาสร้างชื่อ เรื่อง' : null,
                 ),
                 new FormField<String>(
                   builder: (FormFieldState<String> state) {
@@ -226,6 +284,7 @@ class _AddPartState extends State<AddPart> {
                     labelText: 'อาการ',
                   ),
                   controller: ctrsymptom,
+                  validator: (val) => val.isEmpty ? 'กรุณาระบุ อาการ' : null,
                 ),
                new FormField<String>(
                   builder: (FormFieldState<String> state) {
@@ -270,6 +329,7 @@ class _AddPartState extends State<AddPart> {
                   ),
                   controller: ctrunit,
                   keyboardType: TextInputType.number,
+                  validator: (val) => val.isEmpty ? 'กรุณาระบุ จำนวน' : null,
                 ),
                 TextFormField(
                   decoration: const InputDecoration(
@@ -279,42 +339,62 @@ class _AddPartState extends State<AddPart> {
                   ),
                   controller: ctrprice,
                   keyboardType: TextInputType.number,
-                ),
-                Container(
-                  child: Center(
-                    child: Row(
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Text('                          ')
-                          ],
-                        ),
-                        RaisedButton(
-                          textColor: Colors.deepPurple,
-                          child: Icon(Icons.add_a_photo),
-                          onPressed: getImageCamera,
-                        ),
-                        Column(
-                          children: <Widget>[
-                            Text('    ')
-                          ],
-                        ),
-                        RaisedButton(
-                          textColor: Colors.deepOrange,
-                          child: Icon(Icons.add_a_photo),
-                          onPressed: getImageCamera,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Column(
-                  children: <Widget>[
-                    Text('หมายเหตุ** สีน้ำเงิน ของใหม่ / สีแดง ของเก่า')
-                  ],
+                  validator: (val) => val.isEmpty ? 'กรุณาระบุ ราคา' : null,
                 ),
                 new Container(
                     padding: const EdgeInsets.only(left: 40.0, top: 20.0),
+                    width: 120.0,
+                    height: 80.0,
+                    child: new RaisedButton(
+                      color: Colors.amber,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(Icons.camera_alt),
+                          Text("(รูปอุปกรณ์ใหม่)")
+                        ],
+                      ),
+                      onPressed: getImage1,
+                    )),
+                Container(
+                  height: _image1 == null
+                      ? 0.0
+                      : 200.0,
+                  child: Center(
+                    child: _image1 == null
+                        ? Text('')
+                        : Image.file(_image1),
+                  ),
+                ),
+
+
+                new Container(
+                    padding: const EdgeInsets.only(left: 40.0, top: 20.0),
+                    width: 120.0,
+                    height: 80.0,
+                    child: new RaisedButton(
+                      color: Colors.amber,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(Icons.camera_alt),
+                          Text("(รูปอุปกรณ์เก่า)")
+                        ],
+                      ),
+                      onPressed: getImage2,
+                    )),
+                Container(
+                  height: _image2 == null
+                      ? 0.0
+                      : 200.0,
+                  child: Center(
+                    child: _image2 == null
+                        ? Text('')
+                        : Image.file(_image2),
+                  ),
+                ),
+                new Container(
+                    padding: const EdgeInsets.only(left: 40.0, top: 20.0 ,bottom: 20.0),
                     child: new RaisedButton(
                       color: Theme.of(context).accentColor,
                       child: const Text('บันทึก'),
@@ -327,6 +407,7 @@ class _AddPartState extends State<AddPart> {
       );
     }
   }
+
 
 class DepPart {
   final String  name;
