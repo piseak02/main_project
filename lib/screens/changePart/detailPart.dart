@@ -79,11 +79,11 @@ class DetailChang  extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return new Scaffold(
-      appBar: new AppBar(title: new Text('รายการละเอียด  ')),
+      appBar: new AppBar(title: new Text('รายการละเอียด')),
       body: ListView(
         children: <Widget>[
           Container(
-            padding: EdgeInsets.only(left: 20.0,top: 20,bottom: 50.0,right: 17.0),
+            padding: EdgeInsets.only(left: 20.0,top: 20,bottom: 50.0,right: 18.0),
             alignment: Alignment.topLeft,
            child: Table(
                 children: [
