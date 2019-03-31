@@ -79,7 +79,7 @@ class DetailChang  extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return new Scaffold(
-      appBar: new AppBar(title: new Text('รายการละเอียด')),
+      appBar: new AppBar(title: new Text('รายการละเอียด  ')),
       body: ListView(
         children: <Widget>[
           Container(
